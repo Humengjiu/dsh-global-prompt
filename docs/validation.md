@@ -19,7 +19,7 @@
 
 本记录不证明官方当前主分支、其他 dsh 版本或全部平台兼容。未运行全仓库覆盖率、真实 Chromium 的完整插件安装/设置旅程、with-key 模型请求或日志回放；没有宣称这些检查通过。原始一次直接 Client 编译曾因未生成 Host 接口失败，按实际构建顺序生成 Host 后已通过。
 
-本仓库的 GitHub Actions 配置会在发布后运行同样的独立检查；此时没有可宣称通过的远端 CI 记录。
+首次 GitHub Actions 已通过：[Plugin checks](https://github.com/Humengjiu/dsh-global-prompt/actions/runs/38418824937)，提交 `ce19bf8322b7ca6b5ed1737fe39f03dd14f79d4c`。它在 Linux 上完成独立测试、构建、产物验收和打包。发布流程再次验证通过后才公开预览版下载包。
 
 ## 复现
 
