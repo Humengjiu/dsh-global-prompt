@@ -1,34 +1,34 @@
-# 验证记录
+# 0.2.0 适配验证记录
 
-验证日期：2026-10-13（Asia/Shanghai）。
-环境：Windows x64；Node 24.15.0；pnpm 11.7.0。
-兼容基线：`Humengjiu/deepseek-harness@efdbb6694b639cf9bf7aeac727d7c0a79a18c0b6`。
+日期：2026-10-14（Asia/Shanghai）。
+目标：官方发布版 `dsh-v0.2.1-alpha.2`，提交 `d743267388641bc76f17c45ce8b4c231aed1d32c`。
+运行环境：Windows x64、Node 24.15.0、pnpm 11.28.5；直接使用官方 npm 包，而非旧开发分支的链接依赖。
 
-## 已通过
+## 已完成的证据
 
-- 原始实现：`pnpm exec vitest run packages/client/ui-global-prompt/tests`，4 个文件、13 个用例通过。
-- 独立社区实现：`npm test`，4 个文件、13 个用例通过。仅将插件自引用名改为 `dsh-global-prompt`，保留原功能。
-- Host 共享接口：对应 dsh 快照的 `pnpm run build:lib:host` 通过。
-- 相关 Client 类型：对应快照的 `pnpm exec tsc -b packages/client/ui-global-prompt/tsconfig.json` 通过。
-- 独立插件类型检查和双端构建：`npm run build` 通过。产物含 Node `lib/index.js`、companion `lib/invariant.js`、浏览器工厂 `lib/client.js` 和声明文件。
-- 构建产物验收：`npm run smoke` 通过。使用普通 Node、真实 Loader/Include、真实 FileSettingsProvider 和构建后的插件，确认从 YAML 配置启动、默认关闭、persona 后注入、设置落盘、销毁后重启恢复、关闭/空白过滤、卸载清理。
-- 浏览器工厂验收：在受控 VM 中确认 id 为 `dsh-global-prompt`、仅请求预期的共享模块、导出 apply/inject 并注入带插件归属的 CSS。它不是 Chromium 界面验收。
-- 打包：`npm run pack` 通过，生成 `dist/dsh-global-prompt-0.1.0.tgz`，包含入口、类型、安装覆盖配置和许可证。
+完整测试运行：4 个文件、17 个用例全部通过。
 
-## 限制
+- Host：真实官方 Loader、profile 组合层、SettingsForms 和 ConfigEditor。默认值、自定义页面策略、volatile 原地更新、字面括号、提示词变更通知、持久化/重启、版本冲突和卸载清理通过。
+- 浏览器接线：执行官方发布的 ui-renderer、ui-settings、locale 闭包工厂，使用其真实 ConfigForms，验证加载状态、字段写入、revision、非 loopback 拒绝写入及卸载。
+- 组件：实际官方 Switch 原子组件、只读/加载状态、聚焦草稿、失焦同步、保存拒绝/异常保留草稿与重试、开关失败回退。
+- 迁移：提议文件保留旧设置、当前 profile 文件、邻近条目和注释；不覆盖现有输出。
+- 类型与构建：独立 TypeScript 编译、Host ESM、浏览器 CJS 工厂和内联 CSS 通过。
+- 构建产物：普通 Node 加载实际 `lib/index.js`，再经官方 profile/Loader 验证字面注入、profile patch 落盘与重启恢复。
+- 安装：使用官方 npm CLI 将打包产物安装到隔离的 Web profile。组合包自动加入 `dsh.profile.bundles`；没有设置版本豁免。
+- 实际网页：官方 0.2.1-alpha.2 Web 正常加载；设置里出现全局提示词，启用后可输入，保存含 `{{literal}}` 的文本，刷新后开关/文本恢复，关闭被保存。浏览器没有相关 warning/error。
+- UI 证据：Codex 内置浏览器、1280×720 桌面视口；没有空白页、框架错误遮罩、控件溢出或不可读文本。测试过程中跳过模型密钥配置，不发送模型请求。
 
-本记录不证明官方当前主分支、其他 dsh 版本或全部平台兼容。未运行全仓库覆盖率、真实 Chromium 的完整插件安装/设置旅程、with-key 模型请求或日志回放；没有宣称这些检查通过。原始一次直接 Client 编译曾因未生成 Host 接口失败，按实际构建顺序生成 Host 后已通过。
-
-首次 GitHub Actions 已通过：[Plugin checks](https://github.com/Humengjiu/dsh-global-prompt/actions/runs/38418824937)，提交 `ce19bf8322b7ca6b5ed1737fe39f03dd14f79d4c`。它在 Linux 上完成独立测试、构建、产物验收和打包。发布流程再次验证通过后才公开预览版下载包。
-
-## 复现
+## 检查命令
 
 ```sh
-npm run setup
-npm test
-npm run build
-npm run smoke
-npm run pack
+pnpm test
+pnpm run build
+pnpm run smoke
+pnpm run pack
 ```
 
-已有对应源码快照时，通过 `DSH_HARNESS_DIR` 指定其绝对路径。脚本会校验提交和干净源码状态，不接受不同基线。
+实际 CLI 安装使用隔离的 `DSH_HOME`，没有改动用户现有 dsh 环境。Web 测试服务器仅监听 127.0.0.1，端口由系统分配。
+
+## 边界
+
+未运行真实模型 API 调用、桌面应用安装或移动端验收。验证的是模型输入的官方组装路径及真实设置链路，不能据此宣称模型一定遵循每条指令。部分官方 npm 包带有未随包发布的 source-map 引用，Vitest 会输出找不到 map 的调试警告；它不影响通过的运行检查或实际浏览器，且没有修改第三方安装文件。

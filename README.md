@@ -1,79 +1,68 @@
 # dsh-global-prompt
 
-给 DeepSeek Harness 增加一处可持久保存的全局提示词设置：开启后，固定指令会注入所有会话后续请求的系统提示词。
+在 DeepSeek Harness 设置里保存跨会话的固定指令：一个开关、一段文本，作用于安装此插件的 profile。
 
-[English](README.en.md) · [原始实现](https://github.com/Humengjiu/deepseek-harness/pull/1)
+[下载 v0.2.0 预览版](https://github.com/Humengjiu/dsh-global-prompt/releases/tag/v0.2.0) · [English](README.en.md) · [验证记录](docs/validation.md)
 
-这是 Humengjiu 维护的独立社区插件，采用 MIT 协议；不是 DeepSeek 官方插件，也未被官方收录。
+独立社区插件，由 Humengjiu 维护，采用 MIT 协议；未经 DeepSeek 官方收录。
 
-## 支持范围
+## 兼容范围
 
-**v0.1.0 是锁定旧开发版本的社区预览版。** 支持的完整代码快照是：
+| 插件版本 | 已验证的 dsh |
+| --- | --- |
+| 0.2.0 | 官方发布版 **0.2.1-alpha.2**，tag `dsh-v0.2.1-alpha.2`，提交 `d743267388641bc76f17c45ce8b4c231aed1d32c` |
+| 0.1.0 | 原开发分支快照，见 [历史预览版](https://github.com/Humengjiu/dsh-global-prompt/releases/tag/v0.1.0) |
 
-- 仓库：`Humengjiu/deepseek-harness`
-- 提交：`efdbb6694b639cf9bf7aeac727d7c0a79a18c0b6`
-- 该快照的工作区包版本：`0.1.0-rc.5`
+本次已在 Windows 上使用官方 npm 发布包验证 Web 安装和实际网页操作。桌面应用使用相同的 Web 插件协议，但尚未单独进行桌面安装验收。未来 dsh 版本可能改变插件 API；本包声明准确的版本要求，不需要设置兼容性豁免。
 
-没有验证官方最新版本或 npm 上的 `0.0.1-rc.1`。不要仅凭类似版本号判断兼容性。对应的开发包没有以同一版本全部公开到 npm，因此本仓库通过锁定的源码快照提供开发依赖，而不是自动安装另一个 dsh。
+## 安装到 Web
 
-## 功能
-
-- 在 Web 设置中注册「全局提示词」入口，提供开关和多行文本框。
-- 默认关闭，默认文本为空。
-- 使用既有 `global-prompt` 设置命名空间保存 `enabled` 和 `text`。
-- 启用且文本非空白时，以 `user:global-prompt` 段、order 5 插入 persona 之后，保留输入原文。
-- 每次提示词组装读取最新设置；关闭或清空后，后续请求不再包含该段。
-- 加载时禁用控件，关闭时禁用文本框；聚焦编辑保留草稿，失焦时同步已提交值。
-- 提供中英文界面。
-
-## 开发与打包
-
-准备 Git、Node `^22.19.0 || >=24` 和 pnpm 11.7.0。本仓库的脚本会把开发依赖放在 `.work/harness`，不改动该快照的源码。
+1. 确认 dsh 版本为 `0.2.1-alpha.2`。
+2. 下载 `dsh-global-prompt-0.2.0.tgz`。
+3. 在终端执行：
 
 ```sh
-npm run setup
-npm test
-npm run build
-npm run smoke
-npm run pack
+dsh plugin --profile web add /absolute/path/dsh-global-prompt-0.2.0.tgz
 ```
 
-已有干净的对应 dsh 快照时，可设置 `DSH_HARNESS_DIR` 指向它，减少重复下载。脚本会拒绝其他提交或含已跟踪源码修改的快照。
+然后重新启动 dsh Web，打开 **设置 → 全局提示词**。打开开关后输入固定指令，等待保存完成。
 
-`npm run build` 先生成 Host 共享接口并检查相关 Client 类型，再构建本插件的 Node 入口、invariant 入口和浏览器闭包工厂。浏览器包使用锁定快照的官方打包预设，CSS 随插件注入。
+安装包自带 profile 组合层，会自动注册 `global-prompt` 条目；无需修改 dsh 源码，也不需要旧版 `--patch global-prompt.patch.yml`。含空格的文件路径请加引号。也可在 dsh 的社区插件安装界面使用该预览版安装包的下载 URL。
 
-`npm run pack` 在 `dist/` 生成 `dsh-global-prompt-0.1.0.tgz`。运行时工厂 id 为 `dsh-global-prompt`；本插件不使用官方 npm 命名空间。Host 提供的 peer 标记为 optional，仅用于防止包管理器自动下载第二套不兼容的 dsh；实际运行仍需要上面的对应 Host 服务。
+首次安装默认启用。若这是更新已安装的旧包，官方会保留其启用状态；设置入口未出现时，在侧栏「插件」中启用 `dsh-global-prompt`，再按提示重启。
 
-## 安装到支持的 Web profile
+默认关闭、文本为空。设置通过官方实时 ConfigForms 保存到对应 profile 的 `cordis.patch.yml`，默认 Web 路径为 `$DSH_HOME/profiles/web/cordis.patch.yml`。服务端对过期的编辑版本进行冲突检查；保存失败会显示提示，当前页面的文本草稿保留并可重试。远端连接或只读状态下不进行 Host 写入。
 
-以下步骤仅适用于上面的锁定快照。先确认该快照已完成完整 dsh 构建，下载本插件的预览包，然后在 dsh 仓库根目录运行：
+## 从 0.1.0 升级
+
+旧版使用独立的 `settings.yaml` 命名空间；新版使用官方 volatile Config 和 profile patch。请保留旧文件，移除旧版启动覆盖文件的使用，再安装新版组合包。详细步骤和不覆盖原文件的迁移工具见 [升级指南](docs/upgrade-v0.2.md)。
+
+## 行为与模型影响
+
+启用且文本非空白时，`user:global-prompt` 在 deployment persona prefix 之后贡献原文；关闭、清空或只有空白时不贡献内容。包括 `{{variable}}` 在内的文本会按字面保留，不作为 dsh 插值表达式执行。每次组装读取当前实时配置；修改会通知提示词消费者，不重启插件。
+
+内容增加对应的模型输入 token；修改会改变 KV-cache 前缀。作用范围是安装该组合包的 profile 内的会话。官方明确声明的完整 system prompt 会覆盖其他 section，这个规则仍然有效。
+
+## 开发
+
+开发依赖直接来自官方已发布的 npm 包，不再依赖克隆旧开发分支。
 
 ```sh
-pnpm dsh plugin --profile web add /absolute/path/dsh-global-prompt-0.1.0.tgz
-pnpm dsh web --patch /absolute/path/global-prompt.patch.yml
+pnpm install --frozen-lockfile
+pnpm test
+pnpm run build
+pnpm run smoke
+pnpm run pack
 ```
 
-`examples/global-prompt.patch.yml` 用相同的 `ui-global-prompt` 行 id 替换旧实现，避免两份插件同时注册同一设置和提示词段。首次使用社区版也需要这个覆盖文件。可使用绝对 Windows 路径，并给含空格的路径加引号。
+Node `^22.19.0 || >=24`，pnpm 11.28.5。构建生成 Node 入口、浏览器闭包工厂、CSS 和类型声明；预览包输出到 `dist/`。GitHub Actions 验证通过后，带版本的 tag 会发布预览包、源码包和校验文件。
 
-启动后打开设置 → 全局提示词，打开开关并输入文本。持久存储遵循 Host 既有设置服务，本地提供者默认写入 `$DSH_HOME/settings.yaml`。远端浏览器是否写入 Host 遵循该快照的 settings-scope 策略，不能视为任意远端都支持持久化。
+## 验证与限制
 
-## 验证范围
+已验证真实 Loader/profile 持久化与重启、官方浏览器设置/renderer/locale 工厂、保存失败草稿和重试、真实 dsh Web 安装、启用、输入、刷新恢复和关闭。具体结果见 [验证记录](docs/validation.md)。
 
-原实现与独立版本的检查结果见 [验证记录](docs/validation.md)。
+未进行真实模型 API 调用、桌面应用安装或移动端验收。每次文本变化仍单独排队保存，尚未增加防抖。该插件没有发布到 npm，本次通过 GitHub 预览包交付。
 
-现有测试覆盖 Host 注入/关闭/空白过滤、设置绑定/写入路由/卸载、组件草稿/失焦交互及 companion 注册。它们使用内存设置提供者、测试传输和 jsdom，不能替代真实浏览器、磁盘持久化重启、或模型请求日志验收。
+## 来源与许可证
 
-## Model Experience
-
-启用的文本会出现在所有会话的后续模型请求中，带来对应 token 开销；关闭或空白文本不增加该段。修改或切换设置会改变系统提示词，可能使 KV-cache 前缀失效。它仅提供全局偏好，单个会话的差异仍由 agent preset/persona 管理。
-
-## Known Limitations and Deferred Work
-
-- 尚未适配官方当前版本。
-- 每次文本变化都会触发写入，未实现防抖。
-- 已通过 Loader 配置加载和文件持久化重启检查；仍需真实 Web 场景、模型请求日志和失败路径的验证。
-- 尚未发布到 npm；本次交付是 GitHub 社区源码与可打包的预览版本。
-
-## 来源与协议
-
-代码源于 Humengjiu 的全局提示词 PR 和 MIT 授权的 DeepSeek Harness。保留原始版权与许可证，详见 [LICENSE](LICENSE) 和 [NOTICE](NOTICE)。官方目前建议通过带有 `dsh-plugin` topic 的社区项目贡献插件，见 [贡献说明](https://github.com/deepseek-ai/deepseek-harness/blob/master/CONTRIBUTING.zh.md)。
+源于 Humengjiu 的 [原始实现](https://github.com/Humengjiu/deepseek-harness/pull/1)，保留 MIT 授权和原始版权说明，见 [LICENSE](LICENSE)、[NOTICE](NOTICE)。

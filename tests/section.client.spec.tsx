@@ -1,109 +1,87 @@
 // @vitest-environment jsdom
-/** GlobalPromptSection behavior: switch follows the persisted flag, typing
- * drives setText through a local draft, blur adopts the committed value. */
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { createSnapshotStore, type SessionListState, type WorkspaceListState } from '@deepseek-ai/dsh-client-runtime/client'
-import { bindSnapshotSelector } from '@deepseek-ai/dsh-client-web-react'
-import { GlobalPromptSection } from '../src/client/GlobalPromptSection.tsx'
-import type { GlobalPromptSectionProps } from '../src/client/GlobalPromptSection.tsx'
-import { createGlobalPromptSectionStore } from '../src/client/settings-store.ts'
-
+import { useSyncExternalStore } from 'react'
+import { afterEach, describe, it, expect, vi } from 'vitest'
+import { act, cleanup, render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
+import type { ConfigFormSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
+import type { GlobalPromptSettings } from '../src/global-prompt-settings.ts'
+import { GlobalPromptSection, type GlobalPromptSectionProps } from '../src/client/GlobalPromptSection.tsx'
+import { en, type GlobalPromptKey } from '../src/client/locales.ts'
 afterEach(cleanup)
 
-const COPY: Record<string, string> = {
-  'title': 'Title',
-  'description': 'Description',
-  'placeholder': 'Placeholder',
-  'toggle': 'Toggle',
-}
-
-function emptySessions() {
-  const store = createSnapshotStore<SessionListState>(
-    { ids: [], byId: {}, current: undefined, phase: 'ready', subagentsByParent: {}, jobsBySession: {}, currentAddress: undefined })
-  return bindSnapshotSelector(store)
-}
-
-function emptyWorkspaces() {
-  const store = createSnapshotStore<WorkspaceListState>({
-    items: [], archivedSessionIds: [], state: 'idle', phase: 'ready', error: null,
-    baselinesReady: true, recentWorkspaceId: undefined,
+function mount(options: { enabled?: boolean; status?: 'loading' | 'ready' | 'unavailable'; writable?: boolean; text?: string } = {}) {
+  const store = createSnapshotStore<ConfigFormSnapshot<GlobalPromptSettings>>({
+    status: options.status ?? 'ready', writable: options.writable ?? true,
+    value: { enabled: options.enabled ?? true, text: options.text ?? 'saved' },
+    mode: 'host', base: undefined, user: undefined, revision: 0,
   })
-  return bindSnapshotSelector(store)
-}
-
-function mount(enabled = false, text = '') {
-  const store = createGlobalPromptSectionStore().create()
-  store.actions.sync(enabled, text, 'ready')
-  const setEnabled = vi.fn()
-  const setText = vi.fn()
-  const props: GlobalPromptSectionProps = {
-    close: () => {},
-    useSessions: emptySessions(),
-    useWorkspaces: emptyWorkspaces(),
-    useStore: bindSnapshotSelector(store),
-    actions: store.actions,
-    t: (key: string) => COPY[key] ?? key,
-    setEnabled,
-    setText,
+  const sync = (patch: Partial<GlobalPromptSettings>) => {
+    store.update(draft => { draft.value = { ...draft.value!, ...patch } })
   }
+  const setEnabled = vi.fn(async (enabled: boolean) => { sync({ enabled }); return true })
+  const setText = vi.fn(async (text: string) => { sync({ text }); return true })
+  const props = {
+    close: () => {},
+    useGlobalPrompt: <T,>(select: (s: ConfigFormSnapshot<GlobalPromptSettings>) => T) =>
+      select(useSyncExternalStore(store.subscribe, store.getSnapshot)),
+    t: (key: GlobalPromptKey) => en[key], setEnabled, setText,
+  } as GlobalPromptSectionProps
   render(<GlobalPromptSection {...props} />)
-  return { store, setEnabled, setText }
+  return { store, sync, setEnabled, setText }
 }
-
-const toggle = (): HTMLInputElement => screen.getByLabelText('Toggle') as HTMLInputElement
-const textarea = (): HTMLTextAreaElement => screen.getByPlaceholderText('Placeholder') as HTMLTextAreaElement
-
-describe('GlobalPromptSection', () => {
-  it('renders the title, description, and reflects the persisted flag and text', () => {
-    mount(true, 'Hello')
-    expect(screen.getByText('Title')).toBeDefined()
-    expect(screen.getByText('Description')).toBeDefined()
-    expect(toggle().checked).toBe(true)
-    expect(textarea().value).toBe('Hello')
-  })
-
-  it('disables the switch while the settings scope is loading', () => {
-    const store = createGlobalPromptSectionStore().create()
-    store.actions.sync(false, '', 'loading')
-    const props: GlobalPromptSectionProps = {
-      close: () => {},
-      useSessions: emptySessions(),
-      useWorkspaces: emptyWorkspaces(),
-      useStore: bindSnapshotSelector(store),
-      actions: store.actions,
-      t: (key: string) => COPY[key] ?? key,
-      setEnabled: vi.fn(),
-      setText: vi.fn(),
-    }
-    render(<GlobalPromptSection {...props} />)
-    expect(toggle().disabled).toBe(true)
-    expect(textarea().disabled).toBe(true)
-  })
-
-  it('toggle drives setEnabled', () => {
-    const b = mount(false)
-    fireEvent.click(toggle())
+const editor = () => screen.getByLabelText(en.textLabel) as HTMLTextAreaElement
+describe('GlobalPromptSection latest UI', () => {
+  it('renders accepted values and switches via the official Switch atom', async () => {
+    const b = mount({ enabled: false })
+    expect(editor().disabled).toBe(true)
+    fireEvent.click(screen.getByRole('switch', { name: en.toggle }))
+    await waitFor(() => { expect(editor().disabled).toBe(false) })
     expect(b.setEnabled).toHaveBeenCalledWith(true)
   })
-
-  it('typing drives setText through a local draft', () => {
-    const b = mount(false)
-    fireEvent.change(textarea(), { target: { value: 'abc' } })
-    expect(b.setText).toHaveBeenCalledWith('abc')
-    expect(textarea().value).toBe('abc')
+  it.each(['loading', 'unavailable'] as const)('disables controls when %s', (status) => {
+    mount({ status, writable: false })
+    expect((screen.getByRole('switch') as HTMLButtonElement).disabled).toBe(true)
+    expect(editor().disabled).toBe(true)
+    expect(screen.getByRole('status')).toBeDefined()
   })
-
-  it('keeps the draft while focused and adopts the committed value on blur', () => {
-    const b = mount(true, 'committed')
-    fireEvent.focus(textarea())
-    fireEvent.change(textarea(), { target: { value: 'draft' } })
-    expect(textarea().value).toBe('draft')
-
-    act(() => { b.store.actions.sync(true, 'external', 'ready') })
-    expect(textarea().value).toBe('draft')
-
-    fireEvent.blur(textarea())
-    expect(textarea().value).toBe('external')
+  it('disables a read-only Host even when its accepted values are available', () => {
+    mount({ writable: false })
+    expect(editor().disabled).toBe(true)
+    expect((screen.getByRole('switch') as HTMLButtonElement).disabled).toBe(true)
+  })
+  it('keeps a focused draft and adopts external committed changes after blur', () => {
+    const b = mount()
+    fireEvent.focus(editor())
+    act(() => { b.sync({ text: 'external' }) })
+    expect(editor().value).toBe('saved')
+    fireEvent.blur(editor())
+    expect(editor().value).toBe('external')
+  })
+  it('retains text after a rejected save, displays the failure and supports retry', async () => {
+    const b = mount()
+    b.setText.mockResolvedValueOnce(false)
+    fireEvent.focus(editor())
+    fireEvent.change(editor(), { target: { value: 'unsaved' } })
+    fireEvent.blur(editor())
+    await waitFor(() => { expect(screen.getByRole('alert').textContent).toBe(en.saveFailed) })
+    expect(editor().value).toBe('unsaved')
+    fireEvent.click(screen.getByRole('button', { name: en.retry }))
+    await waitFor(() => { expect(screen.queryByRole('alert')).toBeNull() })
+    expect(b.setText).toHaveBeenLastCalledWith('unsaved')
+    expect(editor().value).toBe('unsaved')
+  })
+  it('handles transport errors without an unhandled rejection or discarded draft', async () => {
+    const b = mount()
+    b.setText.mockRejectedValueOnce(new Error('offline'))
+    fireEvent.change(editor(), { target: { value: 'offline draft' } })
+    await waitFor(() => { expect(screen.getByRole('alert')).toBeDefined() })
+    expect(editor().value).toBe('offline draft')
+  })
+  it('reports a refused toggle while retaining the accepted switch value', async () => {
+    const b = mount()
+    b.setEnabled.mockResolvedValueOnce(false)
+    fireEvent.click(screen.getByRole('switch'))
+    await waitFor(() => { expect(screen.getByRole('alert')).toBeDefined() })
+    expect(screen.getByRole('switch').getAttribute('aria-checked')).toBe('true')
   })
 })

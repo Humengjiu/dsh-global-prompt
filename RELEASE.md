@@ -1,9 +1,20 @@
-# v0.1.0 社区预览版
+# v0.2.0：适配官方 dsh 0.2.1-alpha.2
 
-为 DeepSeek Harness 增加可保存的全局提示词：从 Web 设置启用并编辑，作用于所有会话的后续系统提示词组装。
+从旧开发快照迁移到官方已发布的 npm 插件接口。保留设置里的开关、多行编辑和跨会话原文注入。
 
-这是独立社区项目，未经 DeepSeek 官方收录。仅验证 `Humengjiu/deepseek-harness@efdbb6694b639cf9bf7aeac727d7c0a79a18c0b6`，没有承诺兼容官方最新版。
+- 改用官方 volatile Config、ConfigForms 和 profile patch 持久化。
+- 安装包自带组合层，安装到 Web profile 后自动启用，无需改源码或加旧覆盖文件。
+- `{{…}}` 按字面保留；保存失败提供草稿和重试；readonly/non-loopback 不写 Host。
+- 增加真实官方 Loader/profile、官方浏览器工厂、组件和保留原文件的迁移检查。
+- 已在 Windows 的官方 Web 0.2.1-alpha.2 上完成实际安装、保存、刷新恢复和关闭验收。
+- 仅声明已验证的这个官方版本；未进行真实模型请求、Desktop 安装或移动端验收。
 
-下载 `dsh-global-prompt-0.1.0.tgz`，按照 README 的对应版本安装方法使用，附带 `examples/global-prompt.patch.yml` 替换旧实现。原始代码与独立版本各有 13 个通过的单元测试；独立类型/构建、真实 Loader 和设置文件重启恢复检查通过。完整 Web 浏览器和模型请求验收尚待补充。
+下载 `dsh-global-prompt-0.2.0.tgz`，执行：
 
-包未发布到 npm。本版本通过 GitHub 社区源码与预览包交付。
+```sh
+dsh plugin --profile web add /absolute/path/dsh-global-prompt-0.2.0.tgz
+```
+
+重新启动，打开设置 → 全局提示词。升级旧设置前请阅读仓库的 `docs/upgrade-v0.2.md`。0.1.0 历史预览包仍保留。
+
+社区项目，未经 DeepSeek 官方收录；未发布到 npm。

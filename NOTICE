@@ -1,9 +1,13 @@
-This community plugin preserves the implementation originally submitted by Humengjiu in:
+This independently maintained community plugin derives from Humengjiu's implementation:
 https://github.com/Humengjiu/deepseek-harness/pull/1
-Commit: efdbb6694b639cf9bf7aeac727d7c0a79a18c0b6
 
-The code uses DeepSeek Harness APIs and build tooling under the MIT License.
-The bundled schema library originates from the pinned MIT-licensed DeepSeek Harness vendor snapshot.
-Schemastery and Cosmokit: Copyright (c) 2021-present Shigma. Full MIT notices are retained under licenses/.
-The original DeepSeek copyright and MIT license are retained in LICENSE.
-This project is independently maintained by Humengjiu and is not an official DeepSeek release.
+The 0.2.0 adapter uses the public APIs and released npm packages of
+deepseek-ai/deepseek-harness, dsh-v0.2.1-alpha.2.
+The original DeepSeek MIT copyright and license are retained in LICENSE.
+
+Schemastery and Cosmokit originate from Shigma under MIT.
+Their original notices are retained under licenses/ for historical attribution.
+The 0.2.0 Host schema dependency is distributed separately through npm,
+rather than inlining the old vendored framework into the plugin.
+
+This is not an official DeepSeek release or an accepted upstream contribution.

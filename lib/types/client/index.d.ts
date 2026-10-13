@@ -1,26 +1,17 @@
-import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client';
+/** Settings section over the official shared ConfigForms service. */
+import type { Context } from '@deepseek-ai/cordis';
 import { type GlobalPromptKey } from './locales.ts';
 export type { GlobalPromptSectionInjected, GlobalPromptSectionProps } from './GlobalPromptSection.tsx';
-export type { GlobalPromptSectionState } from './settings-store.ts';
-export type { GlobalPromptKey } from './locales.ts';
 export type { GlobalPromptSettings } from '../global-prompt-settings.ts';
-/** Namespace owning this feature's settings copy. */
-export declare const SETTINGS_NS = "settings.globalPrompt";
 declare module '@deepseek-ai/dsh-client-ui-slots' {
     interface LocaleNamespaceMap {
-        /** The global-prompt settings section's copy. */
         'settings.globalPrompt': GlobalPromptKey;
     }
 }
-/**
- * Required services: the settings transport (`connection` + `remote` feed
- * `settingsScope.bind`), the slot surface, and the locale registry.
- */
 export declare const inject: string[];
 /**
- * Bind the durable section and register the settings section once the
- * `settings.section` declaration is on the tree.
- * @param ctx - the browser plugin context.
+ * Bind the shared namespace and register its localized settings section.
+ * @param ctx Browser plugin context with official settings, locale and renderer services.
  */
-export declare function apply(ctx: ClientContext): void;
+export declare function apply(ctx: Context): void;
 //# sourceMappingURL=index.d.ts.map

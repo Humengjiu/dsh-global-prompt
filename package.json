@@ -1,7 +1,7 @@
 {
   "name": "dsh-global-prompt",
-  "version": "0.1.0",
-  "description": "Community plugin: user-owned global prompt with Web Settings for a pinned DeepSeek Harness snapshot.",
+  "version": "0.2.0",
+  "description": "Community global prompt plugin for DeepSeek Harness 0.2.1-alpha.2: live profile settings and literal cross-session instructions.",
   "type": "module",
   "license": "MIT",
   "author": "Humengjiu",
@@ -29,10 +29,6 @@
       "types": "./lib/types/index.d.ts",
       "default": "./lib/index.js"
     },
-    "./invariant": {
-      "types": "./lib/types/invariant.d.ts",
-      "default": "./lib/invariant.js"
-    },
     "./client": {
       "types": "./lib/types/client/index.d.ts",
       "default": "./lib/client.js"
@@ -47,75 +43,127 @@
     "licenses",
     "docs/validation.md",
     "NOTICE",
-    "examples"
+    "cordis.patch.yml",
+    "scripts/migrate-settings.mjs",
+    "docs/upgrade-v0.2.md"
   ],
   "scripts": {
-    "setup": "node scripts/harness.mjs setup",
-    "test": "node scripts/harness.mjs test",
-    "build": "node scripts/harness.mjs build",
-    "pack": "node scripts/harness.mjs pack",
-    "check": "node scripts/harness.mjs check",
-    "smoke": "node scripts/harness.mjs smoke"
+    "setup": "pnpm install --frozen-lockfile",
+    "test": "vitest run",
+    "smoke": "node scripts/built-smoke.mjs",
+    "check": "pnpm test && pnpm run build && pnpm run smoke",
+    "build": "node scripts/build.mjs",
+    "migrate": "node scripts/migrate-settings.mjs",
+    "pack": "pnpm pack --pack-destination dist"
   },
   "dsh": {
     "client": {
       "inject": [
-        "@deepseek-ai/dsh-client-connection",
-        "@deepseek-ai/dsh-client-locale",
-        "@deepseek-ai/dsh-client-runtime",
         "@deepseek-ai/dsh-client-ui-settings",
-        "@deepseek-ai/dsh-api-remotes"
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-renderer",
+        "@deepseek-ai/dsh-client-ui-primitives"
       ],
       "platform": "web"
+    },
+    "bundle": {
+      "patch": "cordis.patch.yml"
     }
   },
   "peerDependencies": {
-    "@deepseek-ai/cordis": "4.0.1",
-    "@deepseek-ai/dsh-api-remotes": "0.1.0-rc.5",
-    "@deepseek-ai/dsh-client-connection": "0.1.0-rc.5",
-    "@deepseek-ai/dsh-client-locale": "0.1.0-rc.5",
-    "@deepseek-ai/dsh-client-runtime": "0.1.0-rc.5",
-    "@deepseek-ai/dsh-client-ui-settings": "0.1.0-rc.5",
-    "@deepseek-ai/dsh-client-ui-slots": "0.1.0-rc.5",
-    "@deepseek-ai/dsh-invariants": "0.1.0-rc.5",
-    "@deepseek-ai/dsh-system-prompt": "0.1.0-rc.5",
-    "react": "18.3.1"
+    "@deepseek-ai/dsh-client-ui-settings": "0.2.1-alpha.2",
+    "react": "18.3.1",
+    "@deepseek-ai/dsh-client-locale": "0.2.1-alpha.2",
+    "@deepseek-ai/dsh-client-ui-renderer": "0.2.1-alpha.2",
+    "@deepseek-ai/dsh-client-ui-primitives": "0.2.1-alpha.2",
+    "@deepseek-ai/dsh-system-prompt": "0.2.1-alpha.2",
+    "@deepseek-ai/cordis": "4.0.5-alpha.1"
   },
   "communityCompatibility": {
-    "harnessRepository": "https://github.com/Humengjiu/deepseek-harness.git",
-    "harnessCommit": "efdbb6694b639cf9bf7aeac727d7c0a79a18c0b6",
-    "upstreamLatest": "not-verified"
+    "harnessRepository": "https://github.com/deepseek-ai/deepseek-harness",
+    "packageVersion": "0.2.1-alpha.2",
+    "harnessRelease": "dsh-v0.2.1-alpha.2",
+    "harnessCommit": "d743267388641bc76f17c45ce8b4c231aed1d32c",
+    "verification": "Windows Web, released npm artifacts, official profile/settings path"
   },
   "peerDependenciesMeta": {
-    "@deepseek-ai/cordis": {
-      "optional": true
-    },
-    "@deepseek-ai/dsh-api-remotes": {
-      "optional": true
-    },
-    "@deepseek-ai/dsh-client-connection": {
+    "@deepseek-ai/dsh-client-ui-settings": {
       "optional": true
     },
     "@deepseek-ai/dsh-client-locale": {
       "optional": true
     },
-    "@deepseek-ai/dsh-client-runtime": {
+    "@deepseek-ai/dsh-client-ui-primitives": {
       "optional": true
     },
-    "@deepseek-ai/dsh-client-ui-settings": {
+    "@deepseek-ai/cordis": {
       "optional": true
     },
-    "@deepseek-ai/dsh-client-ui-slots": {
-      "optional": true
-    },
-    "@deepseek-ai/dsh-invariants": {
+    "react": {
       "optional": true
     },
     "@deepseek-ai/dsh-system-prompt": {
       "optional": true
     },
-    "react": {
+    "@deepseek-ai/dsh-client-ui-renderer": {
       "optional": true
     }
+  },
+  "packageManager": "pnpm@11.28.5",
+  "dependencies": {
+    "@deepseek-ai/schemastery": "3.18.5-alpha.1",
+    "yaml": "2.8.1"
+  },
+  "devDependencies": {
+    "@deepseek-ai/dsh-api-remotes": "0.2.1-alpha.2",
+    "@deepseek-ai/dsh": "0.2.1-alpha.2",
+    "@deepseek-ai/cordis": "4.0.5-alpha.1",
+    "@deepseek-ai/dsh-client-ui-renderer": "0.2.1-alpha.2",
+    "vitest": "4.1.11",
+    "@deepseek-ai/dsh-client-store": "0.2.1-alpha.2",
+    "@types/node": "22.20.1",
+    "react-dom": "18.3.1",
+    "@deepseek-ai/cordis-plugin-loader": "1.0.6-alpha.1",
+    "@deepseek-ai/dsh-client-ui-primitives": "0.2.1-alpha.2",
+    "@testing-library/dom": "10.4.1",
+    "lightningcss": "1.33.0",
+    "@deepseek-ai/dsh-settings": "0.2.1-alpha.2",
+    "@deepseek-ai/dsh-client-locale": "0.2.1-alpha.2",
+    "typescript": "6.0.3",
+    "tsdown": "0.22.2",
+    "@deepseek-ai/cordis-plugin-include": "1.0.10-alpha.1",
+    "@deepseek-ai/dsh-client-ui-slots": "0.2.1-alpha.2",
+    "@deepseek-ai/dsh-client-ui-settings": "0.2.1-alpha.2",
+    "@types/react": "18.3.1",
+    "@deepseek-ai/dsh-system-prompt": "0.2.1-alpha.2",
+    "@types/react-dom": "18.3.0",
+    "jsdom": "29.1.1",
+    "@testing-library/react": "16.3.3",
+    "react": "18.3.1",
+    "@deepseek-ai/dsh-config-editor": "0.2.1-alpha.2",
+    "@deepseek-ai/dsh-util-code-language": "0.2.1-alpha.2",
+    "clsx": "^2.0.0",
+    "diff": "^9.0.0",
+    "anser": "^2.3.5",
+    "katex": "^0.18.7",
+    "micromark-core-commonmark": "^2.0.3",
+    "micromark-util-character": "^2.1.1",
+    "micromark-util-classify-character": "^2.0.1",
+    "micromark-util-symbol": "^2.0.1",
+    "micromark-util-types": "^2.0.2",
+    "shiki": "^4.4.3",
+    "@deepseek-ai/dsh-util-workspace-path": "0.2.1-alpha.2",
+    "@shikijs/langs": "^4.4.3",
+    "@types/mdast": "^4.0.4",
+    "micromark-factory-space": "^2.0.1",
+    "micromark-extension-math": "^3.1.0",
+    "mdast-util-from-markdown": "^2.0.3",
+    "mdast-util-gfm": "^3.1.0",
+    "mdast-util-math": "^3.0.0",
+    "micromark-extension-gfm": "^3.0.0",
+    "micromark-util-sanitize-uri": "^2.0.1",
+    "simple-icons": "16.31.0",
+    "zustand": "~4.5.7",
+    "immer": "^10.1.1"
   }
 }

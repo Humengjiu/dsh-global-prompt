@@ -1,46 +1,44 @@
-/**
- * Node half of the global-prompt surface plugin: registers the durable
- * settings namespace and the global system-prompt section that renders it.
- * The browser half (`./client`) owns the settings-section UI over the same
- * namespace.
- */
-
-import type { Context } from '@deepseek-ai/cordis'
-import { settingsNamespace } from '@deepseek-ai/dsh-settings'
-// Type-only: the `ctx.systemPrompt` Context merge.
+/** Live, profile-backed global instructions for DeepSeek Harness 0.2.1-alpha.2. */
+import type { Context, Volatile } from '@deepseek-ai/cordis'
+import z from '@deepseek-ai/schemastery'
 import type {} from '@deepseek-ai/dsh-system-prompt'
-import { GLOBAL_PROMPT_SETTINGS_NAMESPACE, GlobalPromptSettingsSchema } from './global-prompt-settings.ts'
+import type {} from '@deepseek-ai/dsh-settings'
+import type {} from '@deepseek-ai/cordis-plugin-loader'
+export { GLOBAL_PROMPT_ENABLED_FIELD, GLOBAL_PROMPT_TEXT_FIELD,
+  GLOBAL_PROMPT_SETTINGS_NAMESPACE, type GlobalPromptSettings } from './global-prompt-settings.ts'
 
-export {
-  GLOBAL_PROMPT_ENABLED_FIELD, GLOBAL_PROMPT_TEXT_FIELD, GLOBAL_PROMPT_SETTINGS_NAMESPACE,
-  type GlobalPromptSettings,
-} from './global-prompt-settings.ts'
+/** Live references updated by Cordis without remounting this plugin. */
+export interface Config {
+  enabled: Volatile<boolean>
+  text: Volatile<string>
+}
 
-/** Prompt section order: after the persona (0), before tool guidance (100+). */
-const GLOBAL_PROMPT_ORDER = 5
+/** User-editable fields saved through the active profile's configuration editor. */
+export const Config = z.object({
+  enabled: z.boolean().default(false).volatile(),
+  text: z.string().default('').volatile(),
+})
 
-/** Prompt section name, unique on the global layer. */
-const GLOBAL_PROMPT_SECTION = 'user:global-prompt'
+export const name = 'dsh-global-prompt'
+export const inject = ['systemPrompt']
 
 /**
- * Register the durable section and the global prompt section when their Host
- * services are composed. Empty text drops the section at render, matching the
- * registry.
- * @param ctx - Host context whose settings and systemPrompt services own the section.
+ * Install global literal instructions and notify cached request assemblers after live edits.
+ * @param ctx Plugin-owned Host context.
+ * @param config Validated live profile settings.
  */
-export function apply(ctx: Context): void {
-  ctx.inject(['settings', 'systemPrompt'], (scopeCtx) => {
-    const scope = scopeCtx.settings.register(
-      settingsNamespace(GLOBAL_PROMPT_SETTINGS_NAMESPACE),
-      GlobalPromptSettingsSchema,
-    )
-    scopeCtx.systemPrompt.section({
-      name: GLOBAL_PROMPT_SECTION,
-      order: GLOBAL_PROMPT_ORDER,
-      text: () => {
-        const section = scope.get()
-        return section.enabled && section.text.trim().length > 0 ? section.text : ''
-      },
-    })
+export function apply(ctx: Context, config: Config): void {
+  ctx.systemPrompt.section({
+    name: 'user:global-prompt',
+    order: ctx.systemPrompt.getSectionOrder('DEPLOYMENT_PERSONA_PREFIX') + 5,
+    interpolate: false,
+    text: () => {
+      const text = config.text.get()
+      return config.enabled.get() && text.trim().length > 0 ? text : ''
+    },
+  })
+  ctx.on('loader/volatile-update', () => { ctx.emit('system-prompt/change') })
+  ctx.inject(['settings'], (scope) => {
+    scope.effect(() => scope.settings.configure({ auto: false }, ctx.fiber), 'global-prompt: custom settings page')
   })
 }

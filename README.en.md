@@ -1,60 +1,61 @@
 # dsh-global-prompt
 
-A community plugin that adds durable, user-owned global prompt settings to a pinned DeepSeek Harness development snapshot.
+A community plugin for durable, literal standing instructions across sessions in a DeepSeek Harness profile.
 
-[中文](README.md) · [Original implementation](https://github.com/Humengjiu/deepseek-harness/pull/1)
+[Download v0.2.0 preview](https://github.com/Humengjiu/dsh-global-prompt/releases/tag/v0.2.0) · [中文](README.md) · [Validation](docs/validation.md)
 
-Independently maintained by Humengjiu under MIT. This is not an official DeepSeek plugin or an accepted upstream contribution.
+Independently maintained by Humengjiu under MIT; not an accepted official DeepSeek contribution.
 
 ## Compatibility
 
-Version 0.1.0 is a community preview for `Humengjiu/deepseek-harness` commit `efdbb6694b639cf9bf7aeac727d7c0a79a18c0b6` (workspace package version `0.1.0-rc.5`). Current upstream and the npm `0.0.1-rc.1` release are unverified. Development uses the pinned source checkout because the matching workspace versions are not all published to npm.
+Plugin 0.2.0 targets official **DeepSeek Harness 0.2.1-alpha.2**, tag `dsh-v0.2.1-alpha.2`, commit `d743267388641bc76f17c45ce8b4c231aed1d32c`. Version 0.1.0 remains the historical preview for the original development snapshot. Future API versions are not claimed compatible.
 
-## Behavior
+The Web profile was installed and exercised on Windows with actual released npm artifacts. Desktop shares the Web plugin protocol but has not been separately acceptance-tested. No compatibility exemption is needed or recommended.
 
-The Web Settings section provides localized enable/disable and multiline text editing. Defaults are disabled and empty text. The Host registers `global-prompt` settings and a `user:global-prompt` section at order 5, immediately after persona. Enabled non-whitespace text is injected unchanged at each subsequent assembly; disabled or blank text contributes nothing. The textarea retains its draft while focused and adopts the committed value on blur.
+## Installation
 
-## Development
-
-Requires Git, Node `^22.19.0 || >=24` and pnpm 11.7.0:
+Download the preview tarball and install it into a matching Web profile:
 
 ```sh
-npm run setup
-npm test
-npm run build
-npm run smoke
-npm run pack
+dsh plugin --profile web add /absolute/path/dsh-global-prompt-0.2.0.tgz
 ```
 
-The setup script obtains the pinned clean checkout under `.work/harness` and links dependencies without changing harness sources. Set `DSH_HARNESS_DIR` to reuse that exact clean checkout. Build generates the Host remote interfaces, checks relevant Client types and emits the plugin's Node, invariant and browser factory entries. Pack writes `dist/dsh-global-prompt-0.1.0.tgz`.
+Restart dsh Web, then open Settings → Global prompt. Enable the switch, enter your standing instruction and wait for saving to finish.
 
-The runtime browser factory is registered as `dsh-global-prompt`. Host-provided peers are optional in package metadata to prevent installation of a second incompatible harness; the matching Host services are still required.
+The package declares its own bundle patch, so installation enables the `global-prompt` entry. No harness source edits or old command-line overlay are required. Settings are live volatile Config fields persisted through the official ConfigForms/configuration editor into the profile's `cordis.patch.yml`. The default is disabled with empty text. Failed text saves retain the mounted editor's draft and provide retry; read-only or non-loopback connections cannot write the Host setting.
 
-## Installation on the supported snapshot
+A first installation enables the bundle. Updating an existing dependency preserves its selection state; if the settings entry is absent after upgrading, enable `dsh-global-prompt` on the sidebar Plugins page and restart if prompted.
 
-Build the complete supported dsh checkout first. Then, from that checkout:
+## Upgrade
 
-```sh
-pnpm dsh plugin --profile web add /absolute/path/dsh-global-prompt-0.1.0.tgz
-pnpm dsh web --patch /absolute/path/global-prompt.patch.yml
-```
-
-Use the included `examples/global-prompt.patch.yml`, which replaces the original `ui-global-prompt` row so both implementations cannot register the same namespace. Open Settings → Global prompt, enable the toggle and enter your instruction.
-
-Persistence follows the Host settings provider (`$DSH_HOME/settings.yaml` by default for the local provider). Remote browsers follow the pinned settings-scope policy; durable remote writes must not be assumed.
-
-## Validation
-
-See [validation.md](docs/validation.md). The tests use an in-memory Host provider, a test transport and jsdom. Actual browser integration, restart persistence and assembled model request/log behavior require further acceptance testing.
+See [the upgrade guide](docs/upgrade-v0.2.md) before migrating old `settings.yaml` values or removing the original overlay. The migration helper writes a new proposed profile patch and preserves both inputs.
 
 ## Model Experience
 
-Enabled text adds its tokens to every session's subsequent requests. Disabled or blank values contribute no section. Mid-session editing changes the system prompt and can invalidate the KV-cache prefix. Per-session preferences remain an agent preset persona concern.
+Enabled non-whitespace text contributes `user:global-prompt` after the deployment persona prefix. Text is literal, including `{{braces}}`. Each assembly reads live values; volatile edits notify prompt consumers without remounting the plugin. Disabled or blank text contributes nothing.
 
-## Known Limitations and Deferred Work
+The enabled text adds its tokens to model input. Editing changes the KV-cache prefix. The setting applies to sessions in profiles where this bundle is installed; official complete-system-prompt overrides continue to suppress other sections.
 
-Current upstream is unverified. Text changes write individually without debounce. Built Loader composition and file persistence/restart have been checked; real Web journeys, model request/log and failure-path acceptance remain to be added. No npm registry publication is claimed; this is a GitHub community preview.
+## Development
+
+Dependencies come directly from released npm packages:
+
+```sh
+pnpm install --frozen-lockfile
+pnpm test
+pnpm run build
+pnpm run smoke
+pnpm run pack
+```
+
+Node `^22.19.0 || >=24`, pnpm 11.28.5. The build emits Node and browser entries, inline plugin CSS and declarations. Tags publish previews only after verification.
+
+## Validation and limitations
+
+See [validation.md](docs/validation.md) for real profile/Loader persistence, released browser-factory integration, component failure handling, migration preservation and actual Web installation/interaction evidence.
+
+Real model API calls, Desktop installation and mobile layouts were not tested. Text writes remain queued per change without debounce. No npm registry publication is claimed; use the GitHub preview tarball.
 
 ## License
 
-MIT. Original DeepSeek attribution is preserved in [LICENSE](LICENSE) and [NOTICE](NOTICE).
+MIT. Original attribution is preserved in [LICENSE](LICENSE) and [NOTICE](NOTICE).

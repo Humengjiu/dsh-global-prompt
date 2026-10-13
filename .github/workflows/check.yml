@@ -15,7 +15,7 @@ jobs:
           node-version: '24'
       - uses: pnpm/action-setup@v4
         with:
-          version: 11.7.0
+          version: 11.28.5
       - run: npm run setup
       - run: npm test
       - run: npm run build

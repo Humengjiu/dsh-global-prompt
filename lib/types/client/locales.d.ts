@@ -1,20 +1,29 @@
-/** `settings.globalPrompt` namespace dictionaries (the section's copy). */
-/** Simplified Chinese dictionary (the key-set source of truth). */
+/** Localized copy owned by the global prompt settings section. */
 export declare const zh: {
     nav: string;
     title: string;
-    description: string;
-    placeholder: string;
     toggle: string;
+    description: string;
+    textLabel: string;
+    placeholder: string;
+    loading: string;
+    unavailable: string;
+    saving: string;
+    saveFailed: string;
+    retry: string;
 };
-/** The settings.globalPrompt namespace key union. */
 export type GlobalPromptKey = keyof typeof zh;
-/** English dictionary, checked complete against the zh key set. */
 export declare const en: {
     nav: string;
     title: string;
-    description: string;
-    placeholder: string;
     toggle: string;
+    description: string;
+    textLabel: string;
+    placeholder: string;
+    loading: string;
+    unavailable: string;
+    saving: string;
+    saveFailed: string;
+    retry: string;
 };
 //# sourceMappingURL=locales.d.ts.map
