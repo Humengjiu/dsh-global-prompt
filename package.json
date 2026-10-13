@@ -1,0 +1,121 @@
+{
+  "name": "dsh-global-prompt",
+  "version": "0.1.0",
+  "description": "Community plugin: user-owned global prompt with Web Settings for a pinned DeepSeek Harness snapshot.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Humengjiu",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Humengjiu/dsh-global-prompt.git"
+  },
+  "homepage": "https://github.com/Humengjiu/dsh-global-prompt#readme",
+  "bugs": {
+    "url": "https://github.com/Humengjiu/dsh-global-prompt/issues"
+  },
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "global-prompt",
+    "community-plugin"
+  ],
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./invariant": {
+      "types": "./lib/types/invariant.d.ts",
+      "default": "./lib/invariant.js"
+    },
+    "./client": {
+      "types": "./lib/types/client/index.d.ts",
+      "default": "./lib/client.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "README.md",
+    "README.en.md",
+    "LICENSE",
+    "licenses",
+    "docs/validation.md",
+    "NOTICE",
+    "examples"
+  ],
+  "scripts": {
+    "setup": "node scripts/harness.mjs setup",
+    "test": "node scripts/harness.mjs test",
+    "build": "node scripts/harness.mjs build",
+    "pack": "node scripts/harness.mjs pack",
+    "check": "node scripts/harness.mjs check",
+    "smoke": "node scripts/harness.mjs smoke"
+  },
+  "dsh": {
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-connection",
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-api-remotes"
+      ],
+      "platform": "web"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "4.0.1",
+    "@deepseek-ai/dsh-api-remotes": "0.1.0-rc.5",
+    "@deepseek-ai/dsh-client-connection": "0.1.0-rc.5",
+    "@deepseek-ai/dsh-client-locale": "0.1.0-rc.5",
+    "@deepseek-ai/dsh-client-runtime": "0.1.0-rc.5",
+    "@deepseek-ai/dsh-client-ui-settings": "0.1.0-rc.5",
+    "@deepseek-ai/dsh-client-ui-slots": "0.1.0-rc.5",
+    "@deepseek-ai/dsh-invariants": "0.1.0-rc.5",
+    "@deepseek-ai/dsh-system-prompt": "0.1.0-rc.5",
+    "react": "18.3.1"
+  },
+  "communityCompatibility": {
+    "harnessRepository": "https://github.com/Humengjiu/deepseek-harness.git",
+    "harnessCommit": "efdbb6694b639cf9bf7aeac727d7c0a79a18c0b6",
+    "upstreamLatest": "not-verified"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/cordis": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-api-remotes": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-client-connection": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-client-locale": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-client-runtime": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-client-ui-settings": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-client-ui-slots": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-invariants": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-system-prompt": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    }
+  }
+}

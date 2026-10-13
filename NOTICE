@@ -1,0 +1,9 @@
+This community plugin preserves the implementation originally submitted by Humengjiu in:
+https://github.com/Humengjiu/deepseek-harness/pull/1
+Commit: efdbb6694b639cf9bf7aeac727d7c0a79a18c0b6
+
+The code uses DeepSeek Harness APIs and build tooling under the MIT License.
+The bundled schema library originates from the pinned MIT-licensed DeepSeek Harness vendor snapshot.
+Schemastery and Cosmokit: Copyright (c) 2021-present Shigma. Full MIT notices are retained under licenses/.
+The original DeepSeek copyright and MIT license are retained in LICENSE.
+This project is independently maintained by Humengjiu and is not an official DeepSeek release.

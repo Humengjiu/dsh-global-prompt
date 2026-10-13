@@ -1,0 +1,27 @@
+name: Plugin checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pinned-harness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.7.0
+      - run: npm run setup
+      - run: npm test
+      - run: npm run build
+      - run: npm run smoke
+      - run: npm run pack
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dsh-global-prompt-package
+          path: dist/*.tgz
